@@ -1,0 +1,40 @@
+{
+  "name": "wbankapi",
+  "version": "1.0.0",
+  "description": "A small scale banking app to manage customer accounts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon --exec babel-node ./src/server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stylll/WBankAPI.git"
+  },
+  "author": "Stephen Aribaba",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stylll/WBankAPI/issues"
+  },
+  "homepage": "https://github.com/stylll/WBankAPI#readme",
+  "dependencies": {
+    "@babel/runtime": "^7.10.4",
+    "babel-eslint": "^10.1.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0",
+    "pg": "^8.3.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "@babel/node": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "eslint": "^7.4.0",
+    "nodemon": "^2.0.4"
+  }
+}
