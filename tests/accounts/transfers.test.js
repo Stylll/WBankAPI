@@ -6,12 +6,14 @@ import {
     account_customer as AccountCustomerModel,
     transactions as TransactionsModel
 } from '../../src/models';
-import { usersWithId as users } from '../helpers/users';
+import {
+    usersWithId as users,
+    userTokenA,
+    fakeUserToken
+} from '../helpers/users';
 import { accountsWithId, accountCustomers, transactions } from '../helpers/accounts';
 
 describe('Transfer Test', () => {
-    const userA = users[0];
-    const userB = users[2];
     const accountA = accountsWithId[0];
     const accountB = accountsWithId[2];
     beforeEach(async () => {
@@ -33,14 +35,34 @@ describe('Transfer Test', () => {
     });
 
     describe('Transfer between accounts test suite', () => {
-        it('should require customer id, email, amount, transferAccountNo', async () => {
+        it ('should require an authentication token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Authentication failed. No token provided');
+        });
+
+        it('should require a valid token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .set({
+                    'x-access-token': 'eiueriuasd.34343.qwasdfrrr',
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Token is invalid or has expired');
+        });
+
+        it('should require amount, transferAccountNo', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0002/transfers')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send();
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
-                customerId: 'Customer Id is required',
-                email: 'Email is required',
                 amount: 'Amount is required',
                 transferAccountNo: 'Transfer account number is required',
                 currency: 'Currency is required'
@@ -50,9 +72,10 @@ describe('Transfer Test', () => {
         it('should require an existing customer', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0002/transfers')
+                .set({
+                    'x-access-token': fakeUserToken,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: '5000',
                     currency: 'Pesos',
                     transferAccountNo: '589450'
@@ -64,9 +87,10 @@ describe('Transfer Test', () => {
         it('should require an existing account accountNo', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/acoun32443/transfers')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'Pesos',
                     transferAccountNo: '589450'
@@ -78,9 +102,10 @@ describe('Transfer Test', () => {
         it('should require an existing account transferAccountNo', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountB.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'Pesos',
                     transferAccountNo: '340923'
@@ -92,9 +117,10 @@ describe('Transfer Test', () => {
         it('should require account owner as customer', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountB.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'CAD',
                     transferAccountNo: accountA.accountNo
@@ -106,9 +132,10 @@ describe('Transfer Test', () => {
         it('should require a valid amount', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0002/transfers')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: 'five thousand',
                     accountNo: 'acoun32443',
                     transferAccountNo: accountB.accountNo,
@@ -123,9 +150,10 @@ describe('Transfer Test', () => {
         it('should require an amount above 1', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0002/transfers')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: '1',
                     accountNo: 'acoun32443',
                     transferAccountNo: accountB.accountNo,
@@ -140,9 +168,10 @@ describe('Transfer Test', () => {
         it('should not allow debit more than available balance', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     transferAccountNo: accountB.accountNo,
                     currency: 'CAD'
@@ -154,9 +183,10 @@ describe('Transfer Test', () => {
         it('should not allow transfer on the same account', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     transferAccountNo: accountA.accountNo,
                     currency: 'CAD'
@@ -168,9 +198,10 @@ describe('Transfer Test', () => {
         it('should not allow debit more than available balance (Pesos to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '50000',
                     transferAccountNo: accountB.accountNo,
                     currency: 'pesos'
@@ -182,9 +213,10 @@ describe('Transfer Test', () => {
         it('should create a transfer transaction', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '50',
                     transferAccountNo: accountB.accountNo,
                     currency: 'CAD'
@@ -203,9 +235,10 @@ describe('Transfer Test', () => {
         it('should create a deposit transaction (Pesos to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '100',
                     transferAccountNo: accountB.accountNo,
                     currency: 'Pesos'
@@ -224,9 +257,10 @@ describe('Transfer Test', () => {
         it('should create a deposit transaction (USD to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '10',
                     transferAccountNo: accountB.accountNo,
                     currency: 'USD'

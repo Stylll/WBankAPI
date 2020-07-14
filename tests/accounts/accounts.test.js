@@ -3,34 +3,69 @@ import app from '../../src/app';
 import {
     Customer as CustomerModel,
     account as AccountModel,
-    account_customer as AccountCustomerModel
+    account_customer as AccountCustomerModel,
+    transactions as TransactionsModel
 } from '../../src/models';
-import { usersWithId as users } from '../helpers/users';
+import {
+    usersWithId as users,
+    userTokenA,
+    fakeUserToken
+} from '../helpers/users';
+import {
+    accountsWithId,
+    transactions,
+    accountCustomers
+} from '../helpers/accounts';
 
 describe('Accounts Test', () => {
-    const userA = users[0];
+    const accountA = accountsWithId[0];
+    const accountB = accountsWithId[2];
     beforeEach(async () => {
         await CustomerModel.sync({ force: true });
         await AccountModel.sync({ force: true });
         await AccountCustomerModel.sync({ force: true });
-
+        await TransactionsModel.sync({ force: true });
         await CustomerModel.bulkCreate(users);
+        await AccountModel.bulkCreate(accountsWithId);
+        await AccountCustomerModel.bulkCreate(accountCustomers);
+        await TransactionsModel.bulkCreate(transactions);
     });
     afterAll(async () => {
         await CustomerModel.sync({ force: true });
         await AccountModel.sync({ force: true });
         await AccountCustomerModel.sync({ force: true });
+        await TransactionsModel.sync({ force: true });
     });
 
     describe('Create Account Test Suite', () => {
-        it('should require customer id, email, name', async () => {
+        it ('should require an authentication token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Authentication failed. No token provided');
+        });
+
+        it('should require a valid token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .set({
+                    'x-access-token': 'eiueriuasd.34343.qwasdfrrr',
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Token is invalid or has expired');
+        });
+
+        it('should require account name', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send();
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
-                customerId: 'Customer Id is required',
-                email: 'Email is required',
                 name: 'Account name is required'
             });
         });
@@ -38,9 +73,10 @@ describe('Accounts Test', () => {
         it('should require an existing customer id and email', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts')
+                .set({
+                    'x-access-token': fakeUserToken,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     name: 'MyAccount'
                 });
             expect(response.statusCode).toBe(404);
@@ -50,9 +86,10 @@ describe('Accounts Test', () => {
         it('should not allow an invalid opening balance', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     openingBalance: 'seven',
                     name: 'MyAccount'
                 });
@@ -65,9 +102,10 @@ describe('Accounts Test', () => {
         it('should not allow a negative opening balance', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     openingBalance: '-200',
                     name: 'MyAccount'
                 });
@@ -78,11 +116,15 @@ describe('Accounts Test', () => {
         });
 
         it('should create a valid bank account', async () => {
+            await AccountModel.sync({ force: true });
+            await AccountCustomerModel.sync({ force: true });
+            await TransactionsModel.sync({ force: true });
             const response = await request(app)
                 .post('/api/v1/accounts')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     openingBalance: '700',
                     name: 'MyAccount'
                 });
@@ -95,4 +137,75 @@ describe('Accounts Test', () => {
             expect(response.body.data.openingBalance).toEqual(700);
         });
     });
+
+    describe('Get Account Balance Test Suite', () => {
+        it ('should require an authentication token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Authentication failed. No token provided');
+        });
+
+        it('should require a valid token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .set({
+                    'x-access-token': 'eiueriuasd.34343.qwasdfrrr',
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Token is invalid or has expired');
+        });
+
+        it('should require an existing customer', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .set({
+                    'x-access-token': fakeUserToken,
+                })
+                .send();
+            expect(response.statusCode).toBe(404);
+            expect(response.body.message).toEqual('Customer does not exist');
+        });
+
+        it('should require an existing account accountNo', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/acoun32443')
+                .set({
+                    'x-access-token': userTokenA,
+                })
+                .send();
+            expect(response.statusCode).toBe(404);
+            expect(response.body.message).toEqual('Account number does not exist');
+        });
+
+        it('should require account owner as customer', async () => {
+            const response = await request(app)
+                .get(`/api/v1/accounts/${accountB.accountNo}`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
+                .send();
+            expect(response.statusCode).toBe(403);
+            expect(response.body.message).toEqual('Sorry, you don\'t have access to this account');
+        });
+
+        it('should return account details and balance', async () => {
+            const response = await request(app)
+                .get(`/api/v1/accounts/${accountA.accountNo}`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
+                .send();
+            expect(response.statusCode).toBe(200);
+            expect(response.body.message).toBe('Account details retrieved successfully');
+            expect(response.body.data).toEqual({
+                accountNo: accountA.accountNo,
+                accountName: accountA.name,
+                openingBalance: accountA.openingBalance,
+                currentBalance: accountA.openingBalance,
+            });
+        });
+    })
 });
