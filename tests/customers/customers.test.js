@@ -5,12 +5,11 @@ import { users } from '../helpers/users';
 
 describe('Customer Test', () => {
     beforeEach(async () => {
-        await CustomerModel.destroy({
-            truncate: true
-        });
+        await CustomerModel.sync({ force: true });
 
         await CustomerModel.bulkCreate(users);
-    })
+    });
+
     describe('Customer POST', () => {
         it('should require name and email', async () => {
             const response = await request(app)
