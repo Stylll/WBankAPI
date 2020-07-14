@@ -1,6 +1,8 @@
 import { Sequelize, Op } from 'sequelize';
 import {
     Customer as CustomerModel,
+    transactions as TransactionModel,
+    sequelize
 } from '../models';
 
 class Utils {
@@ -38,6 +40,25 @@ class Utils {
             const cadAmount = (amount * cadRate) / usdRate;
             return Number.parseFloat(cadAmount.toFixed(2));
         }
+    }
+
+    static async getAccountBalance (accountId) {
+        const transaction = await TransactionModel.findAll({
+            where: {
+                accountId
+            },
+            attributes: [
+                'accountId',
+                [sequelize.fn('sum', sequelize.col('credit')), 'credit'],
+                [sequelize.fn('sum', sequelize.col('debit')), 'debit'],
+            ],
+            group: ['accountId']
+        });
+
+        const result = transaction['0'];
+        const balance = result.credit - result.debit;
+
+        return balance;
     }
 }
 

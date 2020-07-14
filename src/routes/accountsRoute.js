@@ -15,12 +15,19 @@ accountsRoutes.post(
 );
 
 accountsRoutes.post(
-    '/accounts/deposits', AsyncWrapper(AccountValidators.CustomerIdValidate),
+    '/accounts/:accountNo/deposits', AsyncWrapper(AccountValidators.CustomerIdValidate),
     AsyncWrapper(AccountValidators.EmailValidate),
-    AsyncWrapper(AccountValidators.AccountNoValidate),
     AsyncWrapper(AccountValidators.AmountValidate),
     AsyncWrapper(AccountValidators.CurrencyValidate),
     ErrorHandler.handleErrors, AccountController.deposit,
+)
+
+accountsRoutes.post(
+    '/accounts/:accountNo/withdraws', AsyncWrapper(AccountValidators.CustomerIdValidate),
+    AsyncWrapper(AccountValidators.EmailValidate),
+    AsyncWrapper(AccountValidators.AmountValidate),
+    AsyncWrapper(AccountValidators.CurrencyValidate),
+    ErrorHandler.handleErrors, AccountController.withdraw,
 )
 
 export default accountsRoutes;
