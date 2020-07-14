@@ -200,7 +200,123 @@ class AccountController {
             // return response
             return response.status(201).json({
                 success: true,
-                message: "Deposit created successfully",
+                message: "Withdrawal created successfully",
+                data: responseData
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                success: false,
+                message: "An error occurred while processing your request"
+            });
+        }
+    }
+
+    static async transfer (request, response, next) {
+        try {
+            const { customerId, email, amount, currency, transferAccountNo } = request.body;
+            const { accountNo } = request.params;
+
+            if (accountNo == transferAccountNo) {
+                return response.status(400).json({
+                    success: false,
+                    message: "You can't transfer to the same account that will be debited"
+                });
+            }
+
+            // check customer exists
+            const customerExists = await Utils.checkCustomerExists(customerId, email);
+            if (!customerExists) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Customer does not exist"
+                });
+            }
+
+            // check account no exists
+            const dbAccount = await AccountModel.findOne({
+                where: {
+                    accountNo
+                }
+            });
+            if (!dbAccount) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Account number does not exist"
+                });
+            }
+
+            // check transfer account no exists
+            const dbTransferAccount = await AccountModel.findOne({
+                where: {
+                    accountNo: transferAccountNo
+                }
+            });
+            if (!dbTransferAccount) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Transfer account number does not exist"
+                });
+            }
+
+            // check customer is account owner
+            const dbAccCustomer = await AccountCustomerModel.findOne({
+                where: {
+                    accountId: dbAccount.id,
+                    customerId
+                }
+            });
+            if (!dbAccCustomer) {
+                return response.status(403).json({
+                    success: false,
+                    message: "Sorry, you don't have access to this account"
+                });
+            }
+
+            // convert to CAD
+            const cadAmount = Utils.convertToCAD(currency, amount);
+
+            // check if customer has enough funds
+            const balance = await Utils.getAccountBalance(dbAccount.id);
+            if (balance < cadAmount) {
+                return response.status(400).json({
+                    success: false,
+                    message: "Insufficient funds"
+                });
+            }
+
+            // insert debit transactions
+            await TransactionsModel.create({
+                accountId: dbAccount.id,
+                credit: 0,
+                debit: cadAmount,
+                customerId
+            });
+
+            // insert credit transaction
+            await TransactionsModel.create({
+                accountId: dbTransferAccount.id,
+                credit: cadAmount,
+                debit: 0,
+                customerId
+            });
+
+            const responseData = {
+                accountNo: dbAccount.accountNo,
+                accountName: dbAccount.name,
+                transfer: {
+                    accountNo: dbTransferAccount.accountNo,
+                    accountName: dbTransferAccount.name
+                },
+                amountTransferred: amount,
+                cadAmountTransferred: cadAmount,
+                transferCurrency: currency,
+            }
+
+            // return response
+            return response.status(201).json({
+                success: true,
+                message: "Transfer created successfully",
                 data: responseData
             });
 

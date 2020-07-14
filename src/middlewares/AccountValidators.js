@@ -76,9 +76,9 @@ class AccountValidators {
         return next();
     }
 
-    static async AccountNoValidate (request, response, next) {
-        if (!request.body.accountNo || !request.body.accountNo.trim()) {
-            request.errors.accountNo = 'AccountNo is required';
+    static async TransferAccountNoValidate (request, response, next) {
+        if (!request.body.transferAccountNo || !request.body.transferAccountNo.trim()) {
+            request.errors.transferAccountNo = 'Transfer account number is required';
             return next();
         }
 
