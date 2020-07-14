@@ -40,4 +40,9 @@ accountsRoutes.get(
     AccountController.account
 )
 
+accountsRoutes.get(
+    '/accounts', CustomerValidators.TokenValidate,
+    AccountController.accounts
+)
+
 export default accountsRoutes;

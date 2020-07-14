@@ -13,5 +13,6 @@ export const accountCustomers = [
 export const transactions = [
     { accountId: 1, credit: 1000, debit: 0, customerId: 1 },
     { accountId: 2, credit: 1000, debit: 0, customerId: 1 },
-    { accountId: 3, credit: 1000, debit: 0, customerId: 2 }
+    { accountId: 3, credit: 1000, debit: 0, customerId: 2 },
+    { accountId: 1, credit: 500, debit: 0, customerId: 1 }
 ]
