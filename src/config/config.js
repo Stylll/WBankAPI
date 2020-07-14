@@ -1,4 +1,3 @@
-// require('babel-core/register')
 require('dotenv').config();
 
 const config = {
