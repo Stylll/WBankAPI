@@ -1,4 +1,5 @@
 import customersRoute from './customersRoute';
+import accountsRoute from './accountsRoute';
 
 const apiPrefix = '/api/v1';
 
@@ -10,13 +11,20 @@ const routes = (app) => {
         });
     });
 
-    // create the error object in the request object
     app.all('*', (request, response, next) => {
+        // create error object in request
         request.errors = {};
+        // clean request body values
+        const body = {};
+        Object.keys(request.body).forEach((key) => {
+            body[key] = `${request.body[key]}`
+        });
+        request.body = body;
         next();
     });
 
     app.use(apiPrefix, customersRoute);
+    app.use(apiPrefix, accountsRoute);
 
     // Error Handler
     app.use((error, request, response, next) => response.status(error.status || 500)
