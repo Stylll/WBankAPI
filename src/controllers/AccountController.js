@@ -388,7 +388,65 @@ class AccountController {
                 }
             });
         } catch (error) {
-            console.log('error: ', error);
+            return response.status(500).json({
+                success: false,
+                message: "An error occurred while processing your request"
+            }); 
+        }
+    }
+
+    static async accounts (request, response, next) {
+        try {
+
+            const { id: customerId, email } = request.decoded.user;
+
+            // check that customer exists
+            const dbCustomer = await CustomerModel.findOne({
+                where: {
+                    [Op.and]: [
+                        { id: customerId },
+                        Sequelize
+                            .where(
+                                Sequelize.fn('lower', Sequelize.col('email')),
+                                Sequelize.fn('lower', email),
+                            ),
+                    ]
+                },
+                include: [
+                    {
+                        model: AccountModel,
+                        as: 'accounts'
+                    }
+                ]
+            });
+            if (!dbCustomer) {
+                return response.status(401).json({
+                    success: false,
+                    message: "Email or customer Id is incorrect"
+                });
+            }
+
+            const result = dbCustomer.get({ plain: true });
+            const data = [];
+            for (let i = 0; i < result.accounts.length; i++) {
+                const account = result.accounts[i];
+                const currentBalance = await Utils.getAccountBalance(account.accountNo);
+                const accountObject = {
+                    accountNo: account.accountNo,
+                    accountName: account.name,
+                    openingBalance: account.openingBalance,
+                    currentBalance
+                }
+                data.push(accountObject);
+            }
+
+            return response.status(200).json({
+                success: true,
+                message: "Account records retrieved successfully",
+                data
+            });
+
+        } catch(error) {
             return response.status(500).json({
                 success: false,
                 message: "An error occurred while processing your request"

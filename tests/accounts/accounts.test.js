@@ -204,8 +204,57 @@ describe('Accounts Test', () => {
                 accountNo: accountA.accountNo,
                 accountName: accountA.name,
                 openingBalance: accountA.openingBalance,
-                currentBalance: accountA.openingBalance,
+                currentBalance: accountA.openingBalance + transactions[3].credit,
             });
         });
-    })
+    });
+
+    describe('Get All Customer Account Test Suite', () => {
+        it ('should require an authentication token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts')
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Authentication failed. No token provided');
+        });
+
+        it('should require a valid token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts')
+                .set({
+                    'x-access-token': 'eiueriuasd.34343.qwasdfrrr',
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Token is invalid or has expired');
+        });
+
+        it('should require an existing customer', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts')
+                .set({
+                    'x-access-token': fakeUserToken,
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Email or customer Id is incorrect');
+        });
+
+        it('should fetch all customer account', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts')
+                .set({
+                    'x-access-token': userTokenA,
+                })
+                .send();
+            expect(response.statusCode).toBe(200);
+            expect(response.body.message).toEqual('Account records retrieved successfully');
+            expect(response.body.data[0]).toEqual({
+                accountNo: accountA.accountNo,
+                accountName: accountA.name,
+                openingBalance: accountA.openingBalance,
+                currentBalance: accountA.openingBalance + transactions[3].credit
+            });
+        });
+    });
 });
