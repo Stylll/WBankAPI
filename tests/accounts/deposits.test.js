@@ -5,11 +5,14 @@ import {
     account as AccountModel,
     account_customer as AccountCustomerModel
 } from '../../src/models';
-import { usersWithId as users } from '../helpers/users';
+import {
+    usersWithId as users,
+    userTokenA,
+    fakeUserToken
+} from '../helpers/users';
 import { accountsWithId, accountCustomers } from '../helpers/accounts';
 
 describe('Deposits Test', () => {
-    const userA = users[0];
     const accountA = accountsWithId[0];
     beforeEach(async () => {
         await CustomerModel.sync({ force: true });
@@ -27,14 +30,34 @@ describe('Deposits Test', () => {
     });
 
     describe('Deposit to account test suite', () => {
-        it('should require customer id, email, amount', async () => {
+        it ('should require an authentication token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Authentication failed. No token provided');
+        });
+
+        it('should require a valid token', async () => {
+            const response = await request(app)
+                .get('/api/v1/accounts/0002')
+                .set({
+                    'x-access-token': 'eiueriuasd.34343.qwasdfrrr',
+                })
+                .send();
+            expect(response.statusCode).toBe(401);
+            expect(response.body.message).toEqual('Token is invalid or has expired');
+        });
+
+        it('should require amount and currency', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0023/deposits')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send();
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
-                customerId: 'Customer Id is required',
-                email: 'Email is required',
                 amount: 'Amount is required',
                 currency: 'Currency is required'
             });
@@ -43,9 +66,10 @@ describe('Deposits Test', () => {
         it('should require an existing customer', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0023/deposits')
+                .set({
+                    'x-access-token': fakeUserToken,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: '5000',
                     currency: 'Pesos'
                 });
@@ -56,9 +80,10 @@ describe('Deposits Test', () => {
         it('should require an existing account accountNo', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/acoun32443/deposits')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'Pesos'
                 });
@@ -69,9 +94,10 @@ describe('Deposits Test', () => {
         it('should require a valid amount', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0023/deposits')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: 'five thousand',
                     currency: 'Pesos'
                 });
@@ -84,9 +110,10 @@ describe('Deposits Test', () => {
         it('should require an amount above 1', async () => {
             const response = await request(app)
                 .post('/api/v1/accounts/0023/deposits')
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: '6432',
-                    email: 'johnson@john.com',
                     amount: '1',
                     currency: 'Pesos'
                 });
@@ -99,9 +126,10 @@ describe('Deposits Test', () => {
         it('should create a deposit transaction', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/deposits`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'CAD'
                 });
@@ -116,9 +144,10 @@ describe('Deposits Test', () => {
         it('should create a deposit transaction (Pesos to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/deposits`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5120',
                     currency: 'Pesos'
                 });
@@ -133,9 +162,10 @@ describe('Deposits Test', () => {
         it('should create a deposit transaction (USD to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/deposits`)
+                .set({
+                    'x-access-token': userTokenA,
+                })
                 .send({
-                    customerId: userA.id,
-                    email: userA.email,
                     amount: '5000',
                     currency: 'USD'
                 });

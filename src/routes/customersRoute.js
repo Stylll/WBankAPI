@@ -12,4 +12,10 @@ customerRoutes.post(
     CustomerController.post,
 );
 
+customerRoutes.post(
+    '/customers/authenticate', AsyncWrapper(CustomerValidators.CustomerIdValidate),
+    AsyncWrapper(CustomerValidators.EmailValidate), ErrorHandler.handleErrors,
+    CustomerController.authenticate,
+);
+
 export default customerRoutes;

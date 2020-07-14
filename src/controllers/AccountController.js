@@ -11,7 +11,8 @@ class AccountController {
 
     static async post (request, response, next) {
         try {
-            const { name, email, customerId, openingBalance = 0 } = request.body; 
+            const { id: customerId, email } = request.decoded.user;
+            const { name, openingBalance = 0 } = request.body; 
             // check if customer exists with id and email
             const dbCustomer = await CustomerModel.findOne({
                 where: {
@@ -71,7 +72,8 @@ class AccountController {
 
     static async deposit (request, response, next) {
         try {
-            const { customerId, email, amount, currency } = request.body;
+            const { id: customerId, email } = request.decoded.user;
+            const { amount, currency } = request.body;
             const { accountNo } = request.params;
             // check customer exists
             const customerExists = await Utils.checkCustomerExists(customerId, email);
@@ -131,7 +133,8 @@ class AccountController {
 
     static async withdraw (request, response, next) {
         try {
-            const { customerId, email, amount, currency } = request.body;
+            const { id: customerId, email } = request.decoded.user;
+            const { amount, currency } = request.body;
             const { accountNo } = request.params;
             // check customer exists
             const customerExists = await Utils.checkCustomerExists(customerId, email);
@@ -214,7 +217,8 @@ class AccountController {
 
     static async transfer (request, response, next) {
         try {
-            const { customerId, email, amount, currency, transferAccountNo } = request.body;
+            const { id: customerId, email } = request.decoded.user;
+            const { amount, currency, transferAccountNo } = request.body;
             const { accountNo } = request.params;
 
             if (accountNo == transferAccountNo) {
@@ -325,6 +329,70 @@ class AccountController {
                 success: false,
                 message: "An error occurred while processing your request"
             });
+        }
+    }
+
+    static async account (request, response, next) {
+        try {
+            const { id: customerId, email } = request.decoded.user;
+            const { accountNo } = request.params;
+
+            // check that customer exists
+            const customerExists = await Utils.checkCustomerExists(customerId, email);
+            if (!customerExists) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Customer does not exist"
+                });
+            }
+
+            // check account no exists
+            const dbAccount = await AccountModel.findOne({
+                where: {
+                    accountNo
+                }
+            });
+            if (!dbAccount) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Account number does not exist"
+                });
+            }
+
+            // check customer is account owner
+            const dbAccCustomer = await AccountCustomerModel.findOne({
+                where: {
+                    accountId: dbAccount.id,
+                    customerId
+                }
+            });
+            if (!dbAccCustomer) {
+                return response.status(403).json({
+                    success: false,
+                    message: "Sorry, you don't have access to this account"
+                });
+            }
+
+            // get account balance
+            const balance = await Utils.getAccountBalance(dbAccount.id);
+
+            // return response
+            return response.status(200).json({
+                success: true,
+                message: "Account details retrieved successfully",
+                data: {
+                    accountNo: dbAccount.accountNo,
+                    accountName: dbAccount.name,
+                    openingBalance: dbAccount.openingBalance,
+                    currentBalance: balance
+                }
+            });
+        } catch (error) {
+            console.log('error: ', error);
+            return response.status(500).json({
+                success: false,
+                message: "An error occurred while processing your request"
+            }); 
         }
     }
 }
