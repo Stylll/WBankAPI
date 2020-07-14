@@ -30,4 +30,13 @@ accountsRoutes.post(
     ErrorHandler.handleErrors, AccountController.withdraw,
 )
 
+accountsRoutes.post(
+    '/accounts/:accountNo/transfers', AsyncWrapper(AccountValidators.CustomerIdValidate),
+    AsyncWrapper(AccountValidators.EmailValidate),
+    AsyncWrapper(AccountValidators.TransferAccountNoValidate),
+    AsyncWrapper(AccountValidators.AmountValidate),
+    AsyncWrapper(AccountValidators.CurrencyValidate),
+    ErrorHandler.handleErrors, AccountController.transfer,
+)
+
 export default accountsRoutes;
