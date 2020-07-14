@@ -14,4 +14,13 @@ accountsRoutes.post(
     ErrorHandler.handleErrors, AccountController.post,
 );
 
+accountsRoutes.post(
+    '/accounts/deposits', AsyncWrapper(AccountValidators.CustomerIdValidate),
+    AsyncWrapper(AccountValidators.EmailValidate),
+    AsyncWrapper(AccountValidators.AccountNoValidate),
+    AsyncWrapper(AccountValidators.AmountValidate),
+    AsyncWrapper(AccountValidators.CurrencyValidate),
+    ErrorHandler.handleErrors, AccountController.deposit,
+)
+
 export default accountsRoutes;

@@ -1,4 +1,5 @@
 import { Sequelize, Op } from 'sequelize';
+import Utils from '../utils/Utils';
 import { 
     account as AccountModel,
     Customer as CustomerModel,
@@ -37,6 +38,10 @@ class AccountController {
                 name, openingBalance, accountTypeId: 1
             });
 
+            const accountNo = Utils.generateAccountNo(dbAccount.id);
+            dbAccount.accountNo = accountNo;
+            await dbAccount.save();
+
             // insert to account_customers
             await AccountCustomerModel.create({
                 customerId, accountId: dbAccount.id
@@ -54,6 +59,65 @@ class AccountController {
                 success: true,
                 message: "Account created successfully",
                 data: dbAccount
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                success: false,
+                message: "An error occurred while processing your request"
+            });
+        }
+    }
+
+    static async deposit (request, response, next) {
+        try {
+            const { customerId, email, amount, accountNo, currency } = request.body;
+            // check customer exists
+            const customerExists = await Utils.checkCustomerExists(customerId, email);
+            if (!customerExists) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Customer does not exist"
+                });
+            }
+
+            // check account no exists
+            const dbAccount = await AccountModel.findOne({
+                where: {
+                    accountNo
+                }
+            });
+            if (!dbAccount) {
+                return response.status(404).json({
+                    success: false,
+                    message: "Account number does not exist"
+                });
+            }
+
+            // convert to cad
+            const cadAmount = Utils.convertToCAD(currency, amount);
+
+            // insert into transactions
+            await TransactionsModel.create({
+                accountId: dbAccount.id,
+                credit: cadAmount,
+                debit: 0,
+                customerId
+            });
+
+            const responseData = {
+                accountNo,
+                accountName: dbAccount.name,
+                amount,
+                cadAmount,
+                depositCurrency: currency,
+            }
+
+            // return response
+            return response.status(201).json({
+                success: true,
+                message: "Deposit created successfully",
+                data: responseData
             });
 
         } catch (error) {

@@ -1,14 +1,25 @@
 import request from 'supertest';
 import app from '../../src/app';
-import { Customer as CustomerModel } from '../../src/models';
+import {
+    Customer as CustomerModel,
+    account as AccountModel,
+    account_customer as AccountCustomerModel
+} from '../../src/models';
 import { usersWithId as users } from '../helpers/users';
 
 describe('Accounts Test', () => {
     const userA = users[0];
     beforeEach(async () => {
         await CustomerModel.sync({ force: true });
+        await AccountModel.sync({ force: true });
+        await AccountCustomerModel.sync({ force: true });
 
         await CustomerModel.bulkCreate(users);
+    });
+    afterAll(async () => {
+        await CustomerModel.sync({ force: true });
+        await AccountModel.sync({ force: true });
+        await AccountCustomerModel.sync({ force: true });
     });
 
     describe('Create Account Test Suite', () => {
@@ -78,10 +89,10 @@ describe('Accounts Test', () => {
             expect(response.statusCode).toBe(201);
             expect(response.body.message).toEqual('Account created successfully');
             expect(response.body.data).toHaveProperty('id');
+            expect(response.body.data).toHaveProperty('accountNo');
             expect(response.body.data.name).toEqual('MyAccount');
             expect(response.body.data.accountTypeId).toEqual(1);
             expect(response.body.data.openingBalance).toEqual(700);
         });
-    })
-
-})
+    });
+});
