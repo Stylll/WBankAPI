@@ -4,11 +4,18 @@
   "description": "A small scale banking app to manage customer accounts",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/server.js && NODE_ENV=production",
+    "build": "npm run clean && npm run build-server",
+    "clean": "rm -rf dist && mkdir dist",
+    "build-server": "babel src --out-dir dist -s",
     "migrate:db": "sequelize db:migrate:undo:all --env=test && sequelize db:migrate --env=test && sequelize db:seed:all --env=test",
+    "migrate:prod-db": "sequelize db:migrate:undo:all --env=prod && sequelize db:migrate --env=prod && sequelize db:seed:all --env=prod",
+    "migrate:dev-db": "sequelize db:migrate:undo:all --env=development && sequelize db:migrate --env=development && sequelize db:seed:all --env=deveopment",
     "pretest": "npm run migrate:db",
     "test": "jest --detectOpenHandles",
     "custom-test": "npm run test tests/integrations/integrations",
-    "start:dev": "nodemon --exec babel-node ./src/server"
+    "start:dev": "nodemon --exec babel-node ./src/server",
+    "heroku-postbuild": "npm run build && npm run migrate:prod-db"
   },
   "repository": {
     "type": "git",
