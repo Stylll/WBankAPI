@@ -74,6 +74,21 @@ describe('Customer Test', () => {
             });
         });
 
+        it('should return error for invalid customer id', async () => {
+            await CustomerModel.sync({ force: true });
+            await CustomerModel.bulkCreate(usersWithId);
+            const response = await request(app)
+                .post('/api/v1/customers/authenticate')
+                .send({
+                    customerId: 'abc',
+                    email: 'email@yah.com'
+                });
+            expect(response.statusCode).toBe(400);
+            expect(response.body.errors).toEqual({
+                customerId: 'Customer Id must be a number',
+            });
+        });
+
         it('should return error for wrong values', async () => {
             await CustomerModel.sync({ force: true });
             await CustomerModel.bulkCreate(usersWithId);
