@@ -58,7 +58,7 @@ class Utils {
         const result = transaction['0'];
         const balance = result.credit - result.debit;
 
-        return balance;
+        return Number.parseFloat(balance).toFixed(2);
     }
 }
 

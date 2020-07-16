@@ -14,7 +14,6 @@ import {
 import { accountsWithId, accountCustomers, transactions } from '../helpers/accounts';
 
 describe('Withdrawal Test', () => {
-    const userA = users[0];
     const accountA = accountsWithId[0];
     const accountB = accountsWithId[2];
     beforeEach(async () => {

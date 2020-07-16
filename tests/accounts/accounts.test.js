@@ -204,7 +204,7 @@ describe('Accounts Test', () => {
                 accountNo: accountA.accountNo,
                 accountName: accountA.name,
                 openingBalance: accountA.openingBalance,
-                currentBalance: accountA.openingBalance + transactions[3].credit,
+                currentBalance: `${accountA.openingBalance + transactions[3].credit}.00`,
             });
         });
     });
@@ -253,7 +253,7 @@ describe('Accounts Test', () => {
                 accountNo: accountA.accountNo,
                 accountName: accountA.name,
                 openingBalance: accountA.openingBalance,
-                currentBalance: accountA.openingBalance + transactions[3].credit
+                currentBalance: `${accountA.openingBalance + transactions[3].credit}.00`
             });
         });
     });
