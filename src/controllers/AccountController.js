@@ -6,6 +6,7 @@ import {
     account_customer as AccountCustomerModel,
     transactions as TransactionsModel,
 } from '../models';
+import Notifier from '../utils/mailer/Notifier';
 
 class AccountController {
 
@@ -137,8 +138,19 @@ class AccountController {
             const { amount, currency } = request.body;
             const { accountNo } = request.params;
             // check customer exists
-            const customerExists = await Utils.checkCustomerExists(customerId, email);
-            if (!customerExists) {
+            const dbCustomer = await CustomerModel.findOne({
+                where: {
+                    [Op.and]: [
+                        { id: customerId },
+                        Sequelize
+                            .where(
+                                Sequelize.fn('lower', Sequelize.col('email')),
+                                Sequelize.fn('lower', email),
+                            ),
+                    ]
+                }
+            });
+            if (!dbCustomer) {
                 return response.status(404).json({
                     success: false,
                     message: "Customer does not exist"
@@ -166,6 +178,10 @@ class AccountController {
                 }
             });
             if (!dbAccCustomer) {
+                const { ENVIRONMENT } = process.env;
+                if (['development', 'production'].includes(ENVIRONMENT)) {
+                    Notifier.NotifyUnauthorizedWithdrawAccess(dbCustomer, dbAccount);
+                }
                 return response.status(403).json({
                     success: false,
                     message: "Sorry, you don't have access to this account"
@@ -246,7 +262,7 @@ class AccountController {
             if (!dbAccount) {
                 return response.status(404).json({
                     success: false,
-                    message: "Account number does not exist"
+                    message: "Account to transfer from does not exist"
                 });
             }
 
@@ -259,7 +275,7 @@ class AccountController {
             if (!dbTransferAccount) {
                 return response.status(404).json({
                     success: false,
-                    message: "Transfer account number does not exist"
+                    message: "Account to transfer to does not exist"
                 });
             }
 

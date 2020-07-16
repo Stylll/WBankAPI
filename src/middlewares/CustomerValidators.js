@@ -52,6 +52,16 @@ class CustomerValidators {
             return next();
         }
 
+        if (Number.isNaN(parseInt(request.body.customerId, 10))) {
+            request.errors.customerId = 'Customer Id must be a number';
+            return next();
+        }
+      
+        if (/[^0-9.]/gi.test(request.body.customerId) === true) {
+            request.errors.customerId = 'Customer Id must be a number';
+            return next();
+        }
+
         return next();
     }
 }

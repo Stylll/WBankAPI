@@ -96,7 +96,7 @@ describe('Transfer Test', () => {
                     transferAccountNo: '589450'
                 });
             expect(response.statusCode).toBe(404);
-            expect(response.body.message).toEqual('Account number does not exist');
+            expect(response.body.message).toEqual('Account to transfer from does not exist');
         });
 
         it('should require an existing account transferAccountNo', async () => {
@@ -111,7 +111,7 @@ describe('Transfer Test', () => {
                     transferAccountNo: '340923'
                 });
             expect(response.statusCode).toBe(404);
-            expect(response.body.message).toEqual('Transfer account number does not exist');
+            expect(response.body.message).toEqual('Account to transfer to does not exist');
         });
 
         it('should require account owner as customer', async () => {
