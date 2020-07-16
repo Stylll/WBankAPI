@@ -25,11 +25,10 @@ class Notifier {
 
     static GenerateMailOptions (to, subject, html) {
         return {
-            from: '"WBank Notification System" <noreply@wbanksecurity.com>',
+            from: '"WBank Notification System" <wbankapp@protonmail.com>',
             to,
             subject,
             html,
-            replyTo: 'bookamealapp@gmail.com'
         }
     }
 }
