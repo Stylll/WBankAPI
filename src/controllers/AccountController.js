@@ -138,19 +138,8 @@ class AccountController {
             const { amount, currency } = request.body;
             const { accountNo } = request.params;
             // check customer exists
-            const dbCustomer = await CustomerModel.findOne({
-                where: {
-                    [Op.and]: [
-                        { id: customerId },
-                        Sequelize
-                            .where(
-                                Sequelize.fn('lower', Sequelize.col('email')),
-                                Sequelize.fn('lower', email),
-                            ),
-                    ]
-                }
-            });
-            if (!dbCustomer) {
+            const customerExists = await Utils.checkCustomerExists(customerId, email);
+            if (!customerExists) {
                 return response.status(404).json({
                     success: false,
                     message: "Customer does not exist"
@@ -161,7 +150,13 @@ class AccountController {
             const dbAccount = await AccountModel.findOne({
                 where: {
                     accountNo
-                }
+                },
+                include: [
+                    {
+                        model: CustomerModel,
+                        as: "customers"
+                    }
+                ]
             });
             if (!dbAccount) {
                 return response.status(404).json({
@@ -180,8 +175,9 @@ class AccountController {
             if (!dbAccCustomer) {
                 const { ENVIRONMENT } = process.env;
                 if (['development', 'production'].includes(ENVIRONMENT)) {
-                    Notifier.NotifyUnauthorizedWithdrawAccess(dbCustomer, dbAccount);
+                    AccountController.Notify(dbAccount);
                 }
+
                 return response.status(403).json({
                     success: false,
                     message: "Sorry, you don't have access to this account"
@@ -467,6 +463,14 @@ class AccountController {
                 success: false,
                 message: "An error occurred while processing your request"
             }); 
+        }
+    }
+
+    static Notify (dbAccount) {
+        const result = dbAccount.get({ plain: true });
+        for (let i = 0; i < result.customers.length; i++) {
+            const customer = result.customers[i];
+            Notifier.NotifyUnauthorizedWithdrawAccess(customer, dbAccount);
         }
     }
 }

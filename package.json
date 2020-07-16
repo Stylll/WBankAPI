@@ -9,7 +9,7 @@
     "clean": "rm -rf dist && mkdir dist",
     "build-server": "babel src --out-dir dist -s",
     "migrate:db": "sequelize db:migrate:undo:all --env=test && sequelize db:migrate --env=test && sequelize db:seed:all --env=test",
-    "migrate:prod-db": "sequelize db:migrate:undo:all --env=production && sequelize db:migrate --env=production && sequelize db:seed:all --env=production",
+    "migrate:prod-db": "sequelize db:migrate --env=production",
     "migrate:dev-db": "sequelize db:migrate:undo:all --env=development && sequelize db:migrate --env=development && sequelize db:seed:all --env=deveopment",
     "pretest": "npm run migrate:db",
     "test": "jest --detectOpenHandles",
