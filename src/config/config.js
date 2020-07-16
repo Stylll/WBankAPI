@@ -10,7 +10,7 @@ const config = {
         dialect: 'postgres',
         logging: false
     },
-    prod: {
+    production: {
         url: process.env.PROD_DB_URL,
         dialect: 'postgres'
     }
