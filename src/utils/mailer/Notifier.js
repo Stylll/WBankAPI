@@ -29,6 +29,7 @@ class Notifier {
             to,
             subject,
             html,
+            replyTo: 'bookamealapp@gmail.com'
         }
     }
 }
