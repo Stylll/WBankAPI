@@ -77,7 +77,7 @@ describe('Transfer Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos',
+                    currency: 'MXN',
                     transferAccountNo: '589450'
                 });
             expect(response.statusCode).toBe(404);
@@ -92,7 +92,7 @@ describe('Transfer Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos',
+                    currency: 'MXN',
                     transferAccountNo: '589450'
                 });
             expect(response.statusCode).toBe(404);
@@ -107,7 +107,7 @@ describe('Transfer Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos',
+                    currency: 'MXN',
                     transferAccountNo: '340923'
                 });
             expect(response.statusCode).toBe(404);
@@ -139,7 +139,7 @@ describe('Transfer Test', () => {
                     amount: 'five thousand',
                     accountNo: 'acoun32443',
                     transferAccountNo: accountB.accountNo,
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -157,7 +157,7 @@ describe('Transfer Test', () => {
                     amount: '1',
                     accountNo: 'acoun32443',
                     transferAccountNo: accountB.accountNo,
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -195,7 +195,7 @@ describe('Transfer Test', () => {
             expect(response.body.message).toEqual('You can\'t transfer to the same account that will be debited');
         });
 
-        it('should not allow debit more than available balance (Pesos to CAD)', async () => {
+        it('should not allow debit more than available balance (MXN to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
                 .set({
@@ -204,7 +204,7 @@ describe('Transfer Test', () => {
                 .send({
                     amount: '50000',
                     transferAccountNo: accountB.accountNo,
-                    currency: 'pesos'
+                    currency: 'mxn'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.message).toEqual('Insufficient funds');
@@ -232,7 +232,7 @@ describe('Transfer Test', () => {
             expect(response.body.data.transferCurrency).toEqual('cad');
         });
 
-        it('should create a deposit transaction (Pesos to CAD)', async () => {
+        it('should create a deposit transaction (MXN to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/transfers`)
                 .set({
@@ -241,7 +241,7 @@ describe('Transfer Test', () => {
                 .send({
                     amount: '100',
                     transferAccountNo: accountB.accountNo,
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(201);
             expect(response.body.message).toBe('Transfer created successfully');
@@ -251,7 +251,7 @@ describe('Transfer Test', () => {
             expect(response.body.data.transfer.accountName).toEqual(accountB.name);
             expect(response.body.data.amountTransferred).toEqual(100);
             expect(response.body.data.cadAmountTransferred).toEqual(10);
-            expect(response.body.data.transferCurrency).toEqual('pesos');
+            expect(response.body.data.transferCurrency).toEqual('mxn');
         });
 
         it('should create a deposit transaction (USD to CAD)', async () => {

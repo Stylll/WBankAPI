@@ -73,7 +73,7 @@ describe('Test suite for cases provided in the challenge', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(201);
 
@@ -142,7 +142,7 @@ describe('Test suite for cases provided in the challenge', () => {
                 })
                 .send({
                     amount: '13726',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(201);
 

@@ -91,9 +91,9 @@ class AccountValidators {
             return next();
         }
 
-        const validCurrencies = ['usd', 'cad', 'pesos'];
+        const validCurrencies = ['usd', 'cad', 'mxn'];
         if (!validCurrencies.includes(request.body.currency.toLowerCase())) {
-            request.errors.currency = 'Currency must be either usd, cad or pesos';
+            request.errors.currency = 'Currency must be either usd, cad or mxn';
             return next();
         }
 

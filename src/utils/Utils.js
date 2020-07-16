@@ -28,12 +28,12 @@ class Utils {
     }
 
     static convertToCAD (currency, amount) {
-        const pesosRate = 10.00;
+        const mxnRate = 10.00;
         const usdRate = 0.50;
         const cadRate = 1.00;
         if (currency === 'cad') return amount;
-        if (currency === 'pesos') {
-            const cadAmount = (amount * cadRate) / pesosRate;
+        if (currency === 'mxn') {
+            const cadAmount = (amount * cadRate) / mxnRate;
             return Number.parseFloat(cadAmount.toFixed(2));
         }
         if (currency === 'usd') {
