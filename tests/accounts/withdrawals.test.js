@@ -76,7 +76,7 @@ describe('Withdrawal Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(404);
             expect(response.body.message).toEqual('Customer does not exist');
@@ -90,7 +90,7 @@ describe('Withdrawal Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(404);
             expect(response.body.message).toEqual('Account number does not exist');
@@ -119,7 +119,7 @@ describe('Withdrawal Test', () => {
                 .send({
                     amount: 'five thousand',
                     accountNo: 'acoun32443',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -136,7 +136,7 @@ describe('Withdrawal Test', () => {
                 .send({
                     amount: '1',
                     accountNo: 'acoun32443',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -158,7 +158,7 @@ describe('Withdrawal Test', () => {
             expect(response.body.message).toEqual('Insufficient funds');
         });
 
-        it('should not allow debit more than available balance (Pesos to CAD)', async () => {
+        it('should not allow debit more than available balance (MXN to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/withdraws`)
                 .set({
@@ -166,7 +166,7 @@ describe('Withdrawal Test', () => {
                 })
                 .send({
                     amount: '50000',
-                    currency: 'pesos'
+                    currency: 'mxn'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.message).toEqual('Insufficient funds');
@@ -191,7 +191,7 @@ describe('Withdrawal Test', () => {
             expect(response.body.data.debitCurrency).toEqual('cad');
         });
 
-        it('should create a deposit transaction (Pesos to CAD)', async () => {
+        it('should create a deposit transaction (MXN to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/withdraws`)
                 .set({
@@ -199,7 +199,7 @@ describe('Withdrawal Test', () => {
                 })
                 .send({
                     amount: '100',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(201);
             expect(response.body.message).toBe('Withdrawal created successfully');
@@ -207,7 +207,7 @@ describe('Withdrawal Test', () => {
             expect(response.body.data.accountName).toEqual(accountA.name);
             expect(response.body.data.amountDebited).toEqual(100);
             expect(response.body.data.cadAmountDebited).toEqual(10);
-            expect(response.body.data.debitCurrency).toEqual('pesos');
+            expect(response.body.data.debitCurrency).toEqual('mxn');
         });
 
         it('should create a deposit transaction (USD to CAD)', async () => {

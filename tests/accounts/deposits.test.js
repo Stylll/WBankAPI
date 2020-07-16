@@ -71,7 +71,7 @@ describe('Deposits Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(404);
             expect(response.body.message).toEqual('Customer does not exist');
@@ -85,7 +85,7 @@ describe('Deposits Test', () => {
                 })
                 .send({
                     amount: '5000',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(404);
             expect(response.body.message).toEqual('Account number does not exist');
@@ -99,7 +99,7 @@ describe('Deposits Test', () => {
                 })
                 .send({
                     amount: 'five thousand',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -115,7 +115,7 @@ describe('Deposits Test', () => {
                 })
                 .send({
                     amount: '1',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(400);
             expect(response.body.errors).toEqual({
@@ -141,7 +141,7 @@ describe('Deposits Test', () => {
             expect(response.body.data.depositCurrency).toEqual('cad');
         });
 
-        it('should create a deposit transaction (Pesos to CAD)', async () => {
+        it('should create a deposit transaction (MXN to CAD)', async () => {
             const response = await request(app)
                 .post(`/api/v1/accounts/${accountA.accountNo}/deposits`)
                 .set({
@@ -149,14 +149,14 @@ describe('Deposits Test', () => {
                 })
                 .send({
                     amount: '5120',
-                    currency: 'Pesos'
+                    currency: 'MXN'
                 });
             expect(response.statusCode).toBe(201);
             expect(response.body.data.accountNo).toEqual(accountA.accountNo);
             expect(response.body.data.accountName).toEqual(accountA.name);
             expect(response.body.data.amount).toEqual(5120);
             expect(response.body.data.cadAmount).toEqual(512);
-            expect(response.body.data.depositCurrency).toEqual('pesos');
+            expect(response.body.data.depositCurrency).toEqual('mxn');
         });
 
         it('should create a deposit transaction (USD to CAD)', async () => {
